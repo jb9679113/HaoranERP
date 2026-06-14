@@ -96,13 +96,13 @@ export function TransactionForm({ onSubmit, initialData = {}, categories = [], p
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="category_id">费用类别</Label>
-          <Select value={formData.category_id || ''} onValueChange={(value) => handleChange('category_id', value)}>
+          <Select value={(formData.category_id || '').toString()} onValueChange={(value) => handleChange('category_id', value ? parseInt(value) : '')}>
             <SelectTrigger>
               <SelectValue placeholder="选择类别" />
             </SelectTrigger>
             <SelectContent>
               {categories.map(cat => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -110,13 +110,13 @@ export function TransactionForm({ onSubmit, initialData = {}, categories = [], p
 
         <div className="space-y-2">
           <Label htmlFor="payer_id">付款人</Label>
-          <Select value={formData.payer_id || ''} onValueChange={(value) => handleChange('payer_id', value)}>
+          <Select value={(formData.payer_id || '').toString()} onValueChange={(value) => handleChange('payer_id', value ? parseInt(value) : '')}>
             <SelectTrigger>
               <SelectValue placeholder="选择付款人" />
             </SelectTrigger>
             <SelectContent>
               {payers.map(payer => (
-                <SelectItem key={payer.id} value={payer.id}>{payer.name}</SelectItem>
+                <SelectItem key={payer.id} value={payer.id.toString()}>{payer.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -124,13 +124,13 @@ export function TransactionForm({ onSubmit, initialData = {}, categories = [], p
 
         <div className="space-y-2">
           <Label htmlFor="bank_account_id">银行账户</Label>
-          <Select value={formData.bank_account_id || ''} onValueChange={(value) => handleChange('bank_account_id', value)}>
+          <Select value={(formData.bank_account_id || '').toString()} onValueChange={(value) => handleChange('bank_account_id', value ? parseInt(value) : '')}>
             <SelectTrigger>
               <SelectValue placeholder="选择账户" />
             </SelectTrigger>
             <SelectContent>
               {bankAccounts.map(account => (
-                <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                <SelectItem key={account.id} value={account.id.toString()}>{account.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
