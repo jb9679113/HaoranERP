@@ -129,7 +129,7 @@ export function Sales({ role, employee }) {
   }
 
   const filteredSales = sales.filter(s => {
-    if (!selectedEmployee) return true
+    if (!selectedEmployee || selectedEmployee === 'all') return true
     return s.employee_id === selectedEmployee
   })
 
@@ -166,7 +166,7 @@ export function Sales({ role, employee }) {
                 <SelectValue placeholder="全部销售员" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部销售员</SelectItem>
+                <SelectItem value="all">全部销售员</SelectItem>
                 {employees.map(emp => (
                   <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                 ))}
@@ -254,7 +254,7 @@ export function Sales({ role, employee }) {
                   <SelectValue placeholder="选择客户" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">无客户</SelectItem>
+                  <SelectItem value="none">无客户</SelectItem>
                   {customers.map(customer => (
                     <SelectItem key={customer.id} value={customer.id}>{customer.name}</SelectItem>
                   ))}

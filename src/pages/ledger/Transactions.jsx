@@ -17,9 +17,9 @@ export function Transactions() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingTransaction, setDeletingTransaction] = useState(null)
   const [filters, setFilters] = useState({
-    type: '',
-    category_id: '',
-    payer_id: '',
+    type: 'all',
+    category_id: 'all',
+    payer_id: 'all',
     startDate: '',
     endDate: '',
   })
@@ -78,9 +78,9 @@ export function Transactions() {
   }
 
   const filteredTransactions = transactions.filter(t => {
-    if (filters.type && t.type !== filters.type) return false
-    if (filters.category_id && t.category_id !== filters.category_id) return false
-    if (filters.payer_id && t.payer_id !== filters.payer_id) return false
+    if (filters.type && filters.type !== 'all' && t.type !== filters.type) return false
+    if (filters.category_id && filters.category_id !== 'all' && t.category_id !== filters.category_id) return false
+    if (filters.payer_id && filters.payer_id !== 'all' && t.payer_id !== filters.payer_id) return false
     if (filters.startDate && t.transaction_date < filters.startDate) return false
     if (filters.endDate && t.transaction_date > filters.endDate) return false
     return true
@@ -120,7 +120,7 @@ export function Transactions() {
                 <SelectValue placeholder="全部类型" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部类型</SelectItem>
+                <SelectItem value="all">全部类型</SelectItem>
                 <SelectItem value="入账">入账</SelectItem>
                 <SelectItem value="付款">付款</SelectItem>
                 <SelectItem value="收入">收入</SelectItem>
@@ -134,7 +134,7 @@ export function Transactions() {
                 <SelectValue placeholder="全部分类" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部分类</SelectItem>
+                <SelectItem value="all">全部分类</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                 ))}
@@ -148,7 +148,7 @@ export function Transactions() {
                 <SelectValue placeholder="全部付款人" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部付款人</SelectItem>
+                <SelectItem value="all">全部付款人</SelectItem>
                 {payers.map(payer => (
                   <SelectItem key={payer.id} value={payer.id}>{payer.name}</SelectItem>
                 ))}
