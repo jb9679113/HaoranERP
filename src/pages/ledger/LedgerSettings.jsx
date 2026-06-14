@@ -26,7 +26,7 @@ export function LedgerSettings() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [currentTab, setCurrentTab] = useState('categories')
   const [editingItem, setEditingItem] = useState(null)
-  const [formData, setFormData] = useState({ name: '' })
+  const [formData, setFormData] = useState({ name: '', balance: '0' })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -54,10 +54,10 @@ export function LedgerSettings() {
   const handleOpenDialog = (item = null) => {
     if (item) {
       setEditingItem(item)
-      setFormData({ name: item.name })
+      setFormData({ name: item.name, balance: String(item.balance || 0) })
     } else {
       setEditingItem(null)
-      setFormData({ name: '' })
+      setFormData({ name: '', balance: '0' })
     }
     setDialogOpen(true)
   }
@@ -72,10 +72,18 @@ export function LedgerSettings() {
 
     try {
       if (editingItem) {
-        await supabase.from(table).update({ name: formData.name }).eq('id', editingItem.id)
+        if (currentTab === 'bankAccounts') {
+          await supabase.from(table).update({ name: formData.name, balance: parseFloat(formData.balance) || 0 }).eq('id', editingItem.id)
+        } else {
+          await supabase.from(table).update({ name: formData.name }).eq('id', editingItem.id)
+        }
         toast({ description: '更新成功', className: 'bg-green-500' })
       } else {
-        await supabase.from(table).insert({ name: formData.name })
+        if (currentTab === 'bankAccounts') {
+          await supabase.from(table).insert({ name: formData.name, balance: parseFloat(formData.balance) || 0 })
+        } else {
+          await supabase.from(table).insert({ name: formData.name })
+        }
         toast({ description: '添加成功', className: 'bg-green-500' })
       }
       setDialogOpen(false)
@@ -111,7 +119,12 @@ export function LedgerSettings() {
       ) : (
         items.map(item => (
           <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-            <span className="text-sm font-medium text-slate-900">{item.name}</span>
+            <div>
+              <span className="text-sm font-medium text-slate-900">{item.name}</span>
+              {item.balance !== undefined && (
+                <p className="text-xs text-slate-500">余额: ¥{item.balance.toLocaleString()}</p>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -192,13 +205,26 @@ export function LedgerSettings() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingItem ? '编辑' : '新增'}</DialogTitle>
+            <DialogTitle>{editingItem ? '编辑' : '新增'}{currentTab === 'bankAccounts' ? '银行账户' : currentTab === 'payers' ? '付款人' : '费用类别'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="name">名称 *</Label>
-              <Input id="name" value={formData.name} onChange={(e) => setFormData({ name: e.target.value })} required />
+              <Input id="name" value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
             </div>
+            {currentTab === 'bankAccounts' && (
+              <div className="space-y-2">
+                <Label htmlFor="balance">初始余额</Label>
+                <Input 
+                  id="balance" 
+                  type="number" 
+                  step="0.01"
+                  value={formData.balance} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, balance: e.target.value }))} 
+                  placeholder="0.00"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency, formatDate } from '../lib/format'
-import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText, Building2 } from 'lucide-react'
 
 export function FinancialReport() {
   const [report, setReport] = useState({
@@ -14,6 +14,7 @@ export function FinancialReport() {
     totalIncome: 0,
     totalExpense: 0,
     overallProfit: 0,
+    bankBalance: 0,
     accountBalance: 0,
   })
   const [period, setPeriod] = useState('month') // month, quarter, year
@@ -35,10 +36,11 @@ export function FinancialReport() {
           startDate = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
         }
 
-        const [salesRes, purchasesRes, transactionsRes] = await Promise.all([
+        const [salesRes, purchasesRes, transactionsRes, bankRes] = await Promise.all([
           supabase.from('sales').select('quantity, unit_price').gte('sale_date', startDate),
           supabase.from('purchases').select('quantity, unit_price').gte('purchase_date', startDate),
           supabase.from('transactions').select('amount, type').gte('transaction_date', startDate),
+          supabase.from('bank_accounts').select('name, balance'),
         ])
 
         // 销售统计
@@ -66,8 +68,13 @@ export function FinancialReport() {
         const totalExpense = totalPurchases + transactionExpense
         const overallProfit = totalIncome - totalExpense
 
-        // 账户余额计算（假设初始资金为0，实际可从数据库获取）
-        const accountBalance = overallProfit
+        // 获取青岛银行账户余额
+        const bankAccounts = bankRes.data || []
+        const qingdaoBank = bankAccounts.find(acc => acc.name === '青岛银行')
+        const bankBalance = qingdaoBank ? parseFloat(qingdaoBank.balance) || 0 : 0
+
+        // 账户余额 = 青岛银行账户 + 整体利润
+        const accountBalance = bankBalance + overallProfit
 
         setReport({
           totalSales,
@@ -79,6 +86,7 @@ export function FinancialReport() {
           totalIncome,
           totalExpense,
           overallProfit,
+          bankBalance,
           accountBalance,
         })
       } catch (error) {
@@ -95,7 +103,7 @@ export function FinancialReport() {
     return <div className="flex items-center justify-center py-12">加载中...</div>
   }
 
-  const StatCard = ({ title, value, icon: Icon, color, trend }) => (
+  const StatCard = ({ title, value, icon: Icon, color, trend, subtitle }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-start justify-between">
         <div>
@@ -107,6 +115,7 @@ export function FinancialReport() {
           }`}>
             {formatCurrency(value)}
           </p>
+          {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
           {trend !== undefined && (
             <p className={`text-xs mt-1 ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
@@ -160,7 +169,7 @@ export function FinancialReport() {
       </div>
 
       {/* 核心指标 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard 
           title="总收入" 
           value={report.totalIncome} 
@@ -180,11 +189,42 @@ export function FinancialReport() {
           color={report.overallProfit >= 0 ? 'green' : 'red'} 
         />
         <StatCard 
+          title="青岛银行账户" 
+          value={report.bankBalance} 
+          icon={Building2} 
+          color="blue" 
+          subtitle="启动资金：5人 × 1万"
+        />
+        <StatCard 
           title="账户余额" 
           value={report.accountBalance} 
           icon={Wallet} 
           color="blue" 
+          subtitle="银行账户 + 整体利润"
         />
+      </div>
+
+      {/* 银行账户信息 */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-blue-500" />
+          银行账户
+        </h3>
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600 mb-1">青岛银行账户</p>
+              <p className="text-3xl font-bold text-blue-600">{formatCurrency(report.bankBalance)}</p>
+              <p className="text-xs text-slate-500 mt-1">初始资金：5人 × ¥10,000 = ¥50,000</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-slate-500 mb-1">账户状态</p>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                正常
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 进销管理统计 */}
@@ -259,6 +299,33 @@ export function FinancialReport() {
             <span className={`${report.overallProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(report.overallProfit)}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 计算公式说明 */}
+      <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">计算公式说明</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="bg-white rounded-lg p-4">
+            <p className="font-medium text-slate-700 mb-2">总收入</p>
+            <p className="text-slate-500">销售总额 + 经营流水收入（入账、收入）</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalSales)} + {formatCurrency(report.transactionIncome)} = {formatCurrency(report.totalIncome)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4">
+            <p className="font-medium text-slate-700 mb-2">总支出</p>
+            <p className="text-slate-500">采购总额 + 经营流水支出（付款、支出、报销）</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalPurchases)} + {formatCurrency(report.transactionExpense)} = {formatCurrency(report.totalExpense)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4">
+            <p className="font-medium text-slate-700 mb-2">整体利润</p>
+            <p className="text-slate-500">总收入 - 总支出</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalIncome)} - {formatCurrency(report.totalExpense)} = {formatCurrency(report.overallProfit)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4">
+            <p className="font-medium text-slate-700 mb-2">账户余额</p>
+            <p className="text-slate-500">青岛银行账户 + 整体利润</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.bankBalance)} + {formatCurrency(report.overallProfit)} = {formatCurrency(report.accountBalance)}</p>
           </div>
         </div>
       </div>
