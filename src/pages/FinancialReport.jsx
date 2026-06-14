@@ -15,6 +15,7 @@ export function FinancialReport() {
     totalExpense: 0,
     overallProfit: 0,
     bankBalance: 0,
+    previousBalance: 0,
     accountBalance: 0,
   })
   const [period, setPeriod] = useState('month') // month, quarter, year
@@ -36,6 +37,7 @@ export function FinancialReport() {
           startDate = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
         }
 
+        // 查询当期数据
         const [salesRes, purchasesRes, transactionsRes, bankRes] = await Promise.all([
           supabase.from('sales').select('quantity, unit_price').gte('sale_date', startDate),
           supabase.from('purchases').select('quantity, unit_price').gte('purchase_date', startDate),
@@ -43,16 +45,23 @@ export function FinancialReport() {
           supabase.from('bank_accounts').select('name, balance'),
         ])
 
-        // 销售统计
+        // 查询历史累计数据（从开始到当前时间段之前）
+        const [historicalSalesRes, historicalPurchasesRes, historicalTransactionsRes] = await Promise.all([
+          supabase.from('sales').select('quantity, unit_price').lt('sale_date', startDate),
+          supabase.from('purchases').select('quantity, unit_price').lt('purchase_date', startDate),
+          supabase.from('transactions').select('amount, type').lt('transaction_date', startDate),
+        ])
+
+        // 当期销售统计
         const totalSales = salesRes.data?.reduce((sum, s) => sum + s.quantity * s.unit_price, 0) || 0
         
-        // 采购统计
+        // 当期采购统计
         const totalPurchases = purchasesRes.data?.reduce((sum, p) => sum + p.quantity * p.unit_price, 0) || 0
         
-        // 销售利润 = 销售额 - 采购额
+        // 当期销售利润
         const salesProfit = totalSales - totalPurchases
 
-        // 经营流水统计
+        // 当期经营流水统计
         const transactionIncome = transactionsRes.data?.filter(t => 
           t.type === '入账' || t.type === '收入'
         ).reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
@@ -63,18 +72,33 @@ export function FinancialReport() {
 
         const transactionNet = transactionIncome - transactionExpense
 
-        // 统一统计
+        // 当期统一统计
         const totalIncome = totalSales + transactionIncome
         const totalExpense = totalPurchases + transactionExpense
         const overallProfit = totalIncome - totalExpense
 
-        // 获取青岛银行账户余额
+        // 历史累计利润计算
+        const historicalSales = historicalSalesRes.data?.reduce((sum, s) => sum + s.quantity * s.unit_price, 0) || 0
+        const historicalPurchases = historicalPurchasesRes.data?.reduce((sum, p) => sum + p.quantity * p.unit_price, 0) || 0
+        const historicalTransactionIncome = historicalTransactionsRes.data?.filter(t => 
+          t.type === '入账' || t.type === '收入'
+        ).reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
+        const historicalTransactionExpense = historicalTransactionsRes.data?.filter(t => 
+          t.type === '付款' || t.type === '支出' || t.type === '报销'
+        ).reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
+        
+        const historicalProfit = (historicalSales + historicalTransactionIncome) - (historicalPurchases + historicalTransactionExpense)
+
+        // 获取青岛银行账户余额（初始资金）
         const bankAccounts = bankRes.data || []
         const qingdaoBank = bankAccounts.find(acc => acc.name === '青岛银行')
         const bankBalance = qingdaoBank ? parseFloat(qingdaoBank.balance) || 0 : 0
 
-        // 账户余额 = 青岛银行账户 + 整体利润
-        const accountBalance = bankBalance + overallProfit
+        // 上个月的账户余额 = 初始资金 + 历史累计利润
+        const previousBalance = bankBalance + historicalProfit
+        
+        // 本月账户余额 = 上个月账户余额 + 本月经营利润
+        const accountBalance = previousBalance + overallProfit
 
         setReport({
           totalSales,
@@ -87,6 +111,7 @@ export function FinancialReport() {
           totalExpense,
           overallProfit,
           bankBalance,
+          previousBalance,
           accountBalance,
         })
       } catch (error) {
@@ -169,7 +194,7 @@ export function FinancialReport() {
       </div>
 
       {/* 核心指标 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard 
           title="总收入" 
           value={report.totalIncome} 
@@ -189,40 +214,50 @@ export function FinancialReport() {
           color={report.overallProfit >= 0 ? 'green' : 'red'} 
         />
         <StatCard 
-          title="青岛银行账户" 
-          value={report.bankBalance} 
+          title="上期余额" 
+          value={report.previousBalance} 
           icon={Building2} 
           color="blue" 
-          subtitle="启动资金：5人 × 1万"
+          subtitle="初始资金 + 历史累计利润"
         />
         <StatCard 
           title="账户余额" 
           value={report.accountBalance} 
           icon={Wallet} 
           color="blue" 
-          subtitle="银行账户 + 整体利润"
+          subtitle="上期余额 + 本期利润"
         />
       </div>
 
-      {/* 银行账户信息 */}
+      {/* 账户余额变动 */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
         <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5 text-blue-500" />
-          银行账户
+          账户余额变动
         </h3>
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6">
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-sm text-slate-600 mb-1">青岛银行账户</p>
-              <p className="text-3xl font-bold text-blue-600">{formatCurrency(report.bankBalance)}</p>
-              <p className="text-xs text-slate-500 mt-1">初始资金：5人 × ¥10,000 = ¥50,000</p>
+              <p className="text-sm text-slate-600 mb-1">上期余额</p>
+              <p className="text-2xl font-bold text-slate-700">{formatCurrency(report.previousBalance)}</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-500 mb-1">账户状态</p>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                正常
-              </span>
+            <div>
+              <p className="text-sm text-slate-600 mb-1">本期利润</p>
+              <p className={`text-2xl font-bold ${report.overallProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {report.overallProfit >= 0 ? '+' : ''}{formatCurrency(report.overallProfit)}
+              </p>
             </div>
+            <div>
+              <p className="text-sm text-slate-600 mb-1">当前余额</p>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(report.accountBalance)}</p>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-blue-200 text-center">
+            <p className="text-xs text-slate-500">
+              初始资金：5人 × ¥10,000 = ¥50,000 | 
+              历史累计利润：{formatCurrency(report.previousBalance - report.bankBalance)} | 
+              当前总余额：{formatCurrency(report.accountBalance)}
+            </p>
           </div>
         </div>
       </div>
@@ -323,9 +358,14 @@ export function FinancialReport() {
             <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalIncome)} - {formatCurrency(report.totalExpense)} = {formatCurrency(report.overallProfit)}</p>
           </div>
           <div className="bg-white rounded-lg p-4">
+            <p className="font-medium text-slate-700 mb-2">上期余额</p>
+            <p className="text-slate-500">初始资金 + 历史累计利润</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.bankBalance)} + {formatCurrency(report.previousBalance - report.bankBalance)} = {formatCurrency(report.previousBalance)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 md:col-span-2">
             <p className="font-medium text-slate-700 mb-2">账户余额</p>
-            <p className="text-slate-500">青岛银行账户 + 整体利润</p>
-            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.bankBalance)} + {formatCurrency(report.overallProfit)} = {formatCurrency(report.accountBalance)}</p>
+            <p className="text-slate-500">上期余额 + 本期经营利润</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.previousBalance)} + {formatCurrency(report.overallProfit)} = {formatCurrency(report.accountBalance)}</p>
           </div>
         </div>
       </div>
