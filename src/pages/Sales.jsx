@@ -36,9 +36,11 @@ export function Sales({ role, employee }) {
     sale_date: new Date().toISOString().split('T')[0],
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const loadData = async () => {
     setLoading(true)
+    setError(null)
     try {
       const [salesRes, productsRes, customersRes, employeesRes] = await Promise.all([
         supabase.from('sales').select('*, products(name), customers(name)').order('sale_date', { ascending: false }),
@@ -47,15 +49,21 @@ export function Sales({ role, employee }) {
         supabase.from('employees').select('id, name'),
       ])
       
-      let filteredSales = salesRes.data || []
-      if (!isAdmin(role) && employee) {
-        filteredSales = filteredSales.filter(s => s.employee_id === employee.id)
+      if (salesRes.error) {
+        setError('加载销售记录失败: ' + salesRes.error.message)
+        console.error('加载销售记录失败:', salesRes.error)
+      } else {
+        let filteredSales = salesRes.data || []
+        if (!isAdmin(role) && employee) {
+          filteredSales = filteredSales.filter(s => s.employee_id === employee.id)
+        }
+        setSales(filteredSales)
+        setProducts(productsRes.data || [])
+        setCustomers(customersRes.data || [])
+        setEmployees(employeesRes.data || [])
       }
-      setSales(filteredSales)
-      setProducts(productsRes.data || [])
-      setCustomers(customersRes.data || [])
-      setEmployees(employeesRes.data || [])
     } catch (error) {
+      setError('加载数据失败: ' + error.message)
       console.error('Error loading data:', error)
     } finally {
       setLoading(false)
@@ -133,6 +141,18 @@ export function Sales({ role, employee }) {
 
   if (loading) {
     return <div className="flex items-center justify-center py-12">加载中...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100 text-center">
+        <div className="text-red-500 text-lg font-medium mb-2">加载失败</div>
+        <div className="text-slate-600 text-sm mb-4">{error}</div>
+        <Button onClick={loadData} className="bg-blue-600 hover:bg-blue-700">
+          重新加载
+        </Button>
+      </div>
+    )
   }
 
   return (

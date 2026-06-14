@@ -24,19 +24,38 @@ export function Transactions() {
     endDate: '',
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const loadData = async () => {
     setLoading(true)
+    setError(null)
     try {
       const [transRes, catRes, payerRes] = await Promise.all([
         supabase.from('transactions').select('*, expense_categories(name), payers(name)').order('transaction_date', { ascending: false }),
         supabase.from('expense_categories').select('*'),
         supabase.from('payers').select('*'),
       ])
-      setTransactions(transRes.data || [])
-      setCategories(catRes.data || [])
-      setPayers(payerRes.data || [])
+      
+      if (transRes.error) {
+        setError('加载流水记录失败: ' + transRes.error.message)
+        console.error('加载流水记录失败:', transRes.error)
+      } else {
+        setTransactions(transRes.data || [])
+      }
+      
+      if (catRes.error) {
+        console.error('加载类别失败:', catRes.error)
+      } else {
+        setCategories(catRes.data || [])
+      }
+      
+      if (payerRes.error) {
+        console.error('加载付款人失败:', payerRes.error)
+      } else {
+        setPayers(payerRes.data || [])
+      }
     } catch (error) {
+      setError('加载数据失败: ' + error.message)
       console.error('Error loading data:', error)
     } finally {
       setLoading(false)
@@ -76,6 +95,18 @@ export function Transactions() {
 
   if (loading) {
     return <div className="flex items-center justify-center py-12">加载中...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100 text-center">
+        <div className="text-red-500 text-lg font-medium mb-2">加载失败</div>
+        <div className="text-slate-600 text-sm mb-4">{error}</div>
+        <Button onClick={loadData} className="bg-blue-600 hover:bg-blue-700">
+          重新加载
+        </Button>
+      </div>
+    )
   }
 
   return (
