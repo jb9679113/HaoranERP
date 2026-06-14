@@ -42,31 +42,75 @@ export function Sales({ role, employee }) {
     setLoading(true)
     setError(null)
     try {
-      const [salesRes, productsRes, customersRes, employeesRes] = await Promise.all([
+      console.log('=== 开始加载销售数据 ===');
+      console.log('当前用户角色:', role);
+      console.log('当前员工:', employee);
+      
+      // 先检查 Supabase 连接状态
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      console.log('认证状态:', authData?.session ? '已登录' : '未登录');
+      if (authError) {
+        console.error('认证错误:', authError);
+      }
+      
+      // 单独查询每个表，看哪个有问题
+      const tablesToCheck = ['sales', 'products', 'customers', 'employees'];
+      const checkResults = {};
+      
+      for (const table of tablesToCheck) {
+        try {
+          const res = await supabase.from(table).select('*').limit(1);
+          checkResults[table] = res.error ? `❌ ${res.error.message}` : `✅ 正常`;
+          console.log(`${table}:`, checkResults[table]);
+        } catch (e) {
+          checkResults[table] = `❌ 异常: ${e.message}`;
+          console.log(`${table}:`, checkResults[table]);
+        }
+      }
+      
+      // 如果 sales 表有问题，直接显示错误
+      const salesCheck = await supabase.from('sales').select('*').limit(1);
+      if (salesCheck.error) {
+        const errorMsg = `无法访问 sales 表: ${salesCheck.error.message}`;
+        setError(errorMsg);
+        console.error(errorMsg);
+        setLoading(false);
+        return;
+      }
+      
+      // 再查询完整数据
+      const [fullSalesRes, productsRes, customersRes, employeesRes] = await Promise.all([
         supabase.from('sales').select('*, products(name), customers(name)').order('sale_date', { ascending: false }),
         supabase.from('products').select('id, name, stock_quantity, selling_price'),
         supabase.from('customers').select('id, name'),
         supabase.from('employees').select('id, name'),
-      ])
+      ]);
       
-      if (salesRes.error) {
-        setError('加载销售记录失败: ' + salesRes.error.message)
-        console.error('加载销售记录失败:', salesRes.error)
+      console.log('完整查询结果:', { 
+        sales: fullSalesRes.data?.length || 0, 
+        products: productsRes.data?.length || 0,
+        customers: customersRes.data?.length || 0,
+        employees: employeesRes.data?.length || 0 
+      });
+      
+      if (fullSalesRes.error) {
+        setError('加载销售记录失败: ' + fullSalesRes.error.message);
+        console.error('销售记录错误:', fullSalesRes.error);
       } else {
-        let filteredSales = salesRes.data || []
+        let filteredSales = fullSalesRes.data || [];
         if (!isAdmin(role) && employee) {
-          filteredSales = filteredSales.filter(s => s.employee_id === employee.id)
+          filteredSales = filteredSales.filter(s => s.employee_id === employee.id);
         }
-        setSales(filteredSales)
-        setProducts(productsRes.data || [])
-        setCustomers(customersRes.data || [])
-        setEmployees(employeesRes.data || [])
+        setSales(filteredSales);
+        setProducts(productsRes.data || []);
+        setCustomers(customersRes.data || []);
+        setEmployees(employeesRes.data || []);
       }
     } catch (error) {
-      setError('加载数据失败: ' + error.message)
-      console.error('Error loading data:', error)
+      setError('加载数据失败: ' + error.message);
+      console.error('加载数据异常:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
