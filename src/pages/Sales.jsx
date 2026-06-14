@@ -147,6 +147,8 @@ export function Sales({ role, employee }) {
 
     try {
       console.log('准备插入销售记录:', formData);
+      
+      // 1. 插入销售记录
       const result = await supabase.from('sales').insert({
         product_id: formData.product_id,
         customer_id: formData.customer_id || null,
@@ -164,7 +166,24 @@ export function Sales({ role, employee }) {
         return
       }
       
-      toast({ description: '销售记录添加成功', className: 'bg-green-500' })
+      // 2. 更新商品库存（扣减销售数量）
+      const product = products.find(p => p.id === formData.product_id)
+      if (product) {
+        const newStock = product.stock_quantity - parseInt(formData.quantity)
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ stock_quantity: newStock })
+          .eq('id', formData.product_id)
+        
+        if (updateError) {
+          console.error('库存更新失败:', updateError);
+          toast({ description: '销售记录已保存，但库存更新失败: ' + updateError.message, variant: 'destructive' })
+        } else {
+          console.log('库存已更新:', product.stock_quantity, '->', newStock);
+        }
+      }
+      
+      toast({ description: '销售记录添加成功，库存已扣减', className: 'bg-green-500' })
       setDialogOpen(false)
       setFormData({
         product_id: '',
