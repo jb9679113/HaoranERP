@@ -127,8 +127,27 @@ export function Sales({ role, employee }) {
       return
     }
 
+    // 验证必填字段
+    if (!formData.product_id) {
+      toast({ description: '请选择商品', variant: 'destructive' })
+      return
+    }
+    if (!formData.employee_id) {
+      toast({ description: '请选择销售员', variant: 'destructive' })
+      return
+    }
+    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+      toast({ description: '请输入有效数量', variant: 'destructive' })
+      return
+    }
+    if (!formData.unit_price || parseFloat(formData.unit_price) <= 0) {
+      toast({ description: '请输入有效单价', variant: 'destructive' })
+      return
+    }
+
     try {
-      await supabase.from('sales').insert({
+      console.log('准备插入销售记录:', formData);
+      const result = await supabase.from('sales').insert({
         product_id: formData.product_id,
         customer_id: formData.customer_id || null,
         employee_id: formData.employee_id,
@@ -136,6 +155,15 @@ export function Sales({ role, employee }) {
         unit_price: parseFloat(formData.unit_price),
         sale_date: formData.sale_date,
       })
+      
+      console.log('插入结果:', result);
+      
+      if (result.error) {
+        console.error('插入失败:', result.error);
+        toast({ description: '保存失败: ' + result.error.message, variant: 'destructive' })
+        return
+      }
+      
       toast({ description: '销售记录添加成功', className: 'bg-green-500' })
       setDialogOpen(false)
       setFormData({
@@ -148,6 +176,7 @@ export function Sales({ role, employee }) {
       })
       loadData()
     } catch (error) {
+      console.error('保存异常:', error);
       toast({ description: '保存失败: ' + error.message, variant: 'destructive' })
     }
   }
