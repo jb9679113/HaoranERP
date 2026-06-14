@@ -202,8 +202,44 @@ export function Sales({ role, employee }) {
 
   const handleDelete = async () => {
     try {
-      await supabase.from('sales').delete().eq('id', deletingSale.id)
-      toast({ description: '销售记录删除成功', className: 'bg-green-500' })
+      // 1. 获取要删除的销售记录详情（用于恢复库存）
+      const { data: saleData, error: fetchError } = await supabase
+        .from('sales')
+        .select('product_id, quantity')
+        .eq('id', deletingSale.id)
+        .single()
+      
+      if (fetchError) {
+        toast({ description: '获取销售记录失败: ' + fetchError.message, variant: 'destructive' })
+        return
+      }
+      
+      // 2. 删除销售记录
+      const { error: deleteError } = await supabase.from('sales').delete().eq('id', deletingSale.id)
+      
+      if (deleteError) {
+        toast({ description: '删除失败: ' + deleteError.message, variant: 'destructive' })
+        return
+      }
+      
+      // 3. 恢复商品库存（将销售数量加回）
+      const product = products.find(p => p.id === saleData.product_id)
+      if (product) {
+        const newStock = product.stock_quantity + saleData.quantity
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ stock_quantity: newStock })
+          .eq('id', saleData.product_id)
+        
+        if (updateError) {
+          console.error('库存恢复失败:', updateError);
+          toast({ description: '销售记录已删除，但库存恢复失败: ' + updateError.message, variant: 'destructive' })
+        } else {
+          console.log('库存已恢复:', product.stock_quantity, '->', newStock);
+        }
+      }
+      
+      toast({ description: '销售记录删除成功，库存已恢复', className: 'bg-green-500' })
       setDeleteDialogOpen(false)
       loadData()
     } catch (error) {
