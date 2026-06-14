@@ -13,6 +13,7 @@ import { Transactions } from './pages/ledger/Transactions'
 import { NewTransaction } from './pages/ledger/NewTransaction'
 import { Reports } from './pages/ledger/Reports'
 import { LedgerSettings } from './pages/ledger/LedgerSettings'
+import { FinancialReport } from './pages/FinancialReport'
 import { Button } from '@/components/ui/button'
 import {
   ToastProvider,
@@ -137,6 +138,17 @@ const LedgerSettingsRoute = () => {
   return <LedgerSettings />
 }
 
+const FinancialReportRoute = () => {
+  const { role, loading } = useAuth()
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">加载中...</div>
+  }
+  if (!canViewLedger(role)) {
+    return <Navigate to="/403" />
+  }
+  return <FinancialReport />
+}
+
 const ForbiddenPage = () => {
   const navigate = useNavigate()
   const { user, role } = useAuth()
@@ -181,6 +193,7 @@ const PageContent = ({ children }) => {
     '/customers': { title: '客户管理', subtitle: '管理客户信息' },
     '/ledger/transactions': { title: '流水列表', subtitle: '查看所有经营流水' },
     '/ledger/new': { title: '快速记账', subtitle: '新增经营流水记录' },
+    '/financial-report': { title: '财务报表', subtitle: '统一查看收支、账户余额和整体利润' },
     '/ledger/reports': { title: '经营报表', subtitle: '查看经营数据分析' },
     '/ledger/settings': { title: '系统设置', subtitle: '管理费用类别、付款人、银行账户' },
   }
@@ -294,6 +307,14 @@ function App() {
             <ProtectedRoute allowedRoles={['admin']}>
               <PageContent>
                 <NewTransactionRoute />
+              </PageContent>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/financial-report" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <PageContent>
+                <FinancialReportRoute />
               </PageContent>
             </ProtectedRoute>
           } />

@@ -38,7 +38,8 @@ const menuItems = [
     items: [
       { id: 'ledger/transactions', label: '流水列表', icon: FileText, roleCheck: canViewLedger },
       { id: 'ledger/new', label: '快速记账', icon: PlusCircle, roleCheck: canViewLedger },
-      { id: 'ledger/reports', label: '经营报表', icon: BarChart3, roleCheck: canViewLedger },
+      { id: 'financial-report', label: '财务报表', icon: BarChart3, roleCheck: canViewLedger },
+      { id: 'ledger/reports', label: '经营报表', icon: FileText, roleCheck: canViewLedger },
       { id: 'ledger/settings', label: '系统设置', icon: Settings, roleCheck: canViewLedger },
     ],
   },
