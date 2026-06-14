@@ -348,6 +348,13 @@ export function Sales({ role, employee }) {
                     )}
                   </tr>
                 ))}
+                <tr className="bg-slate-50 font-semibold">
+                  <td className="py-3 px-4 text-sm text-slate-600" colSpan="3">合计</td>
+                  <td className="py-3 px-4 text-sm text-slate-900 text-right">{filteredSales.reduce((sum, s) => sum + parseInt(s.quantity), 0)}</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 text-right">-</td>
+                  <td className="py-3 px-4 text-sm text-slate-900 text-right">{formatCurrency(filteredSales.reduce((sum, s) => sum + s.quantity * s.unit_price, 0))}</td>
+                  {isAdmin(role) && <td className="py-3 px-4"></td>}
+                </tr>
               </tbody>
             </table>
           </div>

@@ -12,3 +12,6 @@ HaoranERP.badminton-plan.top
 
 请访问https://github.com/jb9679113/HaoranERP，排查问题如下：1. 商品仓库-新增商品，还是无法保存
  2. 点击“流水列表”和“销售出库”显示空白。请仔细检查整个程序，不要急着下结论更新
+
+676965736@qq.com
+qq123456

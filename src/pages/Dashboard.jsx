@@ -29,7 +29,7 @@ export function Dashboard() {
         const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
 
         const [salesRes, purchasesRes, productsRes, transactionsRes] = await Promise.all([
-          supabase.from('sales').select('*').gte('sale_date', firstDayOfMonth),
+          supabase.from('sales').select('*, products(name)').gte('sale_date', firstDayOfMonth),
           supabase.from('purchases').select('*').gte('purchase_date', firstDayOfMonth),
           supabase.from('products').select('*').lte('stock_quantity', 10),
           supabase.from('transactions').select('*').gte('transaction_date', firstDayOfMonth),
@@ -179,7 +179,7 @@ export function Dashboard() {
                 {recentSales.map(sale => (
                   <tr key={sale.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="py-3 px-4 text-sm text-slate-900">{formatDate(sale.sale_date)}</td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{sale.product_name || '未知商品'}</td>
+                    <td className="py-3 px-4 text-sm text-slate-900">{sale.products?.name || '未知商品'}</td>
                     <td className="py-3 px-4 text-sm text-slate-600 text-right">{sale.quantity}</td>
                     <td className="py-3 px-4 text-sm text-slate-600 text-right">{formatCurrency(sale.unit_price)}</td>
                     <td className="py-3 px-4 text-sm font-medium text-slate-900 text-right">{formatCurrency(sale.total)}</td>
