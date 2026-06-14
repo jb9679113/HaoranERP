@@ -3,14 +3,58 @@ import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva } from "class-variance-authority"
 import { X } from "lucide-react"
 
+// Toast 消息系统 - 先定义，确保其他组件可以使用
+let toastId = 0
+const toasts = []
+const listeners = new Set()
+
+function showToast(options) {
+  const id = String(++toastId)
+  const toastData = {
+    id,
+    message: options.description || options.message || '',
+    variant: options.variant || 'default',
+    className: options.className,
+  }
+  toasts.push(toastData)
+  listeners.forEach(listener => listener([...toasts]))
+  
+  setTimeout(() => {
+    const index = toasts.findIndex(t => t.id === id)
+    if (index !== -1) {
+      toasts.splice(index, 1)
+      listeners.forEach(listener => listener([...toasts]))
+    }
+  }, options.duration || 3000)
+  
+  return {
+    id,
+    dismiss: () => {
+      const index = toasts.findIndex(t => t.id === id)
+      if (index !== -1) {
+        toasts.splice(index, 1)
+        listeners.forEach(listener => listener([...toasts]))
+      }
+    }
+  }
+}
+
+showToast.subscribe = (listener) => {
+  listeners.add(listener)
+  listener([...toasts])
+  return () => listeners.delete(listener)
+}
+
+const toast = showToast
+
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef(({ className, ...props }, ref) => {
-  const [toasts, setToasts] = React.useState([])
+  const [toastsState, setToastsState] = React.useState([])
   
   React.useEffect(() => {
     const unsubscribe = toast.subscribe((newToasts) => {
-      setToasts(newToasts)
+      setToastsState(newToasts)
     })
     return unsubscribe
   }, [])
@@ -21,7 +65,7 @@ const ToastViewport = React.forwardRef(({ className, ...props }, ref) => {
       className={`fixed top-4 right-4 z-50 flex max-h-screen w-80 flex-col gap-2 overflow-hidden rounded-md p-2 shadow-lg ${className}`}
       {...props}
     >
-      {toasts.map((t) => (
+      {toastsState.map((t) => (
         <Toast
           key={t.id}
           variant={t.variant}
@@ -92,50 +136,6 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
-
-// Toast 消息系统
-let toastId = 0
-const toasts = []
-const listeners = new Set()
-
-function showToast(options) {
-  const id = String(++toastId)
-  const toastData = {
-    id,
-    message: options.description || options.message || '',
-    variant: options.variant || 'default',
-    className: options.className,
-  }
-  toasts.push(toastData)
-  listeners.forEach(listener => listener([...toasts]))
-  
-  setTimeout(() => {
-    const index = toasts.findIndex(t => t.id === id)
-    if (index !== -1) {
-      toasts.splice(index, 1)
-      listeners.forEach(listener => listener([...toasts]))
-    }
-  }, options.duration || 3000)
-  
-  return {
-    id,
-    dismiss: () => {
-      const index = toasts.findIndex(t => t.id === id)
-      if (index !== -1) {
-        toasts.splice(index, 1)
-        listeners.forEach(listener => listener([...toasts]))
-      }
-    }
-  }
-}
-
-showToast.subscribe = (listener) => {
-  listeners.add(listener)
-  listener([...toasts])
-  return () => listeners.delete(listener)
-}
-
-const toast = showToast
 
 export {
   ToastProvider,
