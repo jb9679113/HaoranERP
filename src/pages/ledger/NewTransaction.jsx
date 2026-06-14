@@ -31,7 +31,9 @@ export function NewTransaction() {
 
   const handleSubmit = async (formData) => {
     try {
-      await supabase.from('transactions').insert({
+      console.log('准备插入交易记录:', formData);
+      
+      const result = await supabase.from('transactions').insert({
         type: formData.type,
         amount: parseFloat(formData.amount),
         quantity: parseFloat(formData.quantity) || 1,
@@ -43,8 +45,18 @@ export function NewTransaction() {
         note: formData.note,
         transaction_date: formData.transaction_date,
       })
+      
+      console.log('插入结果:', result);
+      
+      if (result.error) {
+        console.error('插入失败:', result.error);
+        toast({ description: '保存失败: ' + result.error.message, variant: 'destructive' })
+        return
+      }
+      
       toast({ description: '记账成功', className: 'bg-green-500' })
     } catch (error) {
+      console.error('保存异常:', error);
       toast({ description: '保存失败: ' + error.message, variant: 'destructive' })
     }
   }
