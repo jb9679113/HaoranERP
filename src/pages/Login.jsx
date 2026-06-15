@@ -147,20 +147,15 @@ export function Login() {
             <div className="w-20 h-20 mx-auto mb-4">
               <svg viewBox="0 0 100 100" className="w-full h-full">
                 <defs>
-                  <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#c8102e"/>
-                    <stop offset="100%" stopColor="#8b0000"/>
-                  </linearGradient>
                   <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#1e90ff"/>
-                    <stop offset="50%" stopColor="#40a4df"/>
-                    <stop offset="100%" stopColor="#87ceeb"/>
+                    <stop offset="100%" stopColor="#40a4df"/>
                   </linearGradient>
                 </defs>
-                <polygon points="50,10 20,50 35,50 30,65 45,55 55,55 70,65 65,50 80,50" fill="url(#mountainGrad)"/>
-                <path d="M10,75 Q25,65 40,72 T70,68 T90,75" fill="none" stroke="url(#waveGrad)" strokeWidth="3"/>
-                <path d="M15,82 Q35,70 55,80 T90,78" fill="none" stroke="url(#waveGrad)" strokeWidth="2"/>
-                <text x="50" y="92" textAnchor="middle" fontSize="10" fontFamily="STKaiti, KaiTi, serif" fill="#2c3e50">山青浩然</text>
+                <polygon points="50,15 30,45 70,45" fill="#c8102e"/>
+                <path d="M35,50 Q50,42 65,50" fill="none" stroke="url(#waveGrad)" strokeWidth="3"/>
+                <path d="M40,55 Q50,48 60,55" fill="none" stroke="url(#waveGrad)" strokeWidth="2"/>
+                <text x="50" y="70" textAnchor="middle" fontSize="8" fontFamily="STKaiti, KaiTi, serif" fill="#1e90ff">山青浩然</text>
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
