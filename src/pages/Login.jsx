@@ -144,8 +144,12 @@ export function Login() {
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-white">山</span>
+            <div className="w-20 h-20 mx-auto mb-4">
+              <img 
+                src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20calligraphy%20style%20logo%20with%20red%20mountains%20and%20blue%20waves%20with%20Chinese%20characters%20%22Shan%20Qing%20Hao%20Ran%22%20elegant%20corporate%20branding&image_size=square_hd" 
+                alt="山青浩然" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
             <p className="text-slate-500 mt-2">
