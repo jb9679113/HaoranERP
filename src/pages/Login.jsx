@@ -42,29 +42,22 @@ export function Login() {
         
         const userId = data.user.id
         
-        // 测试1：查询所有员工记录
-        const { data: allEmployees, error: allError } = await supabase
-          .from('employees')
-          .select('*')
-          .limit(10)
-        
-        // 测试2：按 auth_user_id 查询
+        // 查询员工记录
         const { data: employeeData, error: empError } = await supabase
           .from('employees')
           .select('*')
           .eq('auth_user_id', userId)
           .maybeSingle()
         
-        let diag = 'UID=' + userId
-        diag += ' | 所有记录=' + JSON.stringify(allEmployees)
-        diag += ' | 匹配记录=' + JSON.stringify(employeeData)
-        if (allError) diag += ' | 所有记录错误=' + allError.message
-        if (empError) diag += ' | 匹配错误=' + empError.message
-        setDiagInfo(diag)
-        
-        if (employeeData?.role) {
-          const defaultPath = employeeData.role === 'admin' ? '/dashboard' : employeeData.role === 'warehouse' ? '/products' : '/sales'
-          navigate(defaultPath)
+        if (empError) {
+          setError('查询员工信息失败: ' + empError.message)
+        } else if (employeeData?.role) {
+          // 登录成功，清除密码并强制刷新页面确保状态正确
+          setPassword('')
+          setTimeout(() => {
+            const defaultPath = employeeData.role === 'admin' ? '/dashboard' : employeeData.role === 'warehouse' ? '/products' : '/sales'
+            window.location.href = defaultPath
+          }, 500)
         } else {
           // 自动创建员工记录
           setSuccess('正在自动创建员工记录...')
@@ -73,13 +66,12 @@ export function Login() {
             .insert({
               auth_user_id: userId,
               email: email,
-              name: name || email.split('@')[0],
+              name: email.split('@')[0],
               role: 'admin',
             })
           
           if (insertError) {
             setError('登录成功但创建员工记录失败: ' + insertError.message)
-            setDiagInfo('插入错误: ' + JSON.stringify(insertError))
           } else {
             setSuccess('员工记录创建成功！请重新登录')
             setTimeout(() => {
@@ -155,7 +147,7 @@ export function Login() {
             <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-white">山</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">山青浩然羽毛球管理系统</h1>
+            <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
             <p className="text-slate-500 mt-2">
               {mode === 'login' ? '请登录您的账户' : '注册新账户'}
             </p>

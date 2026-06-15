@@ -86,7 +86,7 @@ export function Sidebar({ currentPath, role, employee, onNavigate }) {
     <>
       <div className="hidden md:flex flex-col w-[220px] bg-white border-r border-slate-200 h-screen fixed left-0 top-0 z-40">
         <div className="p-4 border-b border-slate-100">
-          <h1 className="text-sm font-semibold text-slate-900">山青浩然</h1>
+          <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
           <p className="text-xs text-slate-500">羽毛球管理系统</p>
         </div>
 
@@ -138,7 +138,7 @@ export function Sidebar({ currentPath, role, employee, onNavigate }) {
         <SheetContent side="left" className="w-[220px] sm:w-[280px] bg-white">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-sm font-semibold text-slate-900">山青浩然</h1>
+              <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
               <p className="text-xs text-slate-500">羽毛球管理系统</p>
             </div>
             <SheetTrigger>
