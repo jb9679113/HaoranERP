@@ -1,0 +1,38 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="#c8102e"/>
+      <stop offset="50%" stopColor="#a52a2a"/>
+      <stop offset="100%" stopColor="#8b0000"/>
+    </linearGradient>
+    <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#1e90ff"/>
+      <stop offset="50%" stopColor="#40a4df"/>
+      <stop offset="100%" stopColor="#87ceeb"/>
+    </linearGradient>
+    <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#20b2aa"/>
+      <stop offset="50%" stopColor="#48d1cc"/>
+      <stop offset="100%" stopColor="#87ceeb"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#1a5f7a"/>
+      <stop offset="50%" stopColor="#2d6a4f"/>
+      <stop offset="100%" stopColor="#1a5f7a"/>
+    </linearGradient>
+  </defs>
+  
+  <polygon points="100,20 40,90 70,90 60,120 90,100 110,100 140,120 130,90 160,90" fill="url(#mountainGrad)"/>
+  
+  <path d="M30,130 Q60,100 100,115 T170,105" fill="none" stroke="url(#waveGrad1)" strokeWidth="4"/>
+  <path d="M40,145 Q70,115 110,130 T170,120" fill="none" stroke="url(#waveGrad2)" strokeWidth="3"/>
+  <path d="M50,155 Q80,130 120,145 T170,135" fill="none" stroke="url(#waveGrad1)" strokeWidth="2"/>
+  
+  <path d="M110,115 Q130,95 145,115 Q130,125 115,120 Q100,125 110,115" fill="url(#waveGrad1)" opacity="0.8"/>
+  <path d="M155,140 Q175,125 185,140 Q175,150 160,145 Q150,150 155,140" fill="url(#waveGrad2)" opacity="0.7"/>
+  
+  <text x="50" y="185" fontSize="20" fontFamily="STKaiti, KaiTi, serif" fill="url(#textGrad)" font-weight="bold">山</text>
+  <text x="85" y="185" fontSize="20" fontFamily="STKaiti, KaiTi, serif" fill="url(#textGrad)" font-weight="bold">青</text>
+  <text x="120" y="185" fontSize="20" fontFamily="STKaiti, KaiTi, serif" fill="url(#textGrad)" font-weight="bold">浩</text>
+  <text x="155" y="185" fontSize="20" fontFamily="STKaiti, KaiTi, serif" fill="url(#textGrad)" font-weight="bold">然</text>
+</svg>

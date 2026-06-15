@@ -85,9 +85,16 @@ export function Sidebar({ currentPath, role, employee, onNavigate }) {
   return (
     <>
       <div className="hidden md:flex flex-col w-[220px] bg-white border-r border-slate-200 h-screen fixed left-0 top-0 z-40">
-        <div className="p-4 border-b border-slate-100">
-          <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
-          <p className="text-xs text-slate-500">羽毛球管理系统</p>
+        <div className="p-4 border-b border-slate-100 flex items-center gap-2">
+          <img 
+            src="/assets/logo.svg" 
+            alt="山青浩然" 
+            className="w-8 h-8 object-contain"
+          />
+          <div>
+            <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
+            <p className="text-xs text-slate-500">羽毛球管理系统</p>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4">
@@ -137,9 +144,16 @@ export function Sidebar({ currentPath, role, employee, onNavigate }) {
         </SheetTrigger>
         <SheetContent side="left" className="w-[220px] sm:w-[280px] bg-white">
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
-              <p className="text-xs text-slate-500">羽毛球管理系统</p>
+            <div className="flex items-center gap-2">
+              <img 
+                src="/assets/logo.svg" 
+                alt="山青浩然" 
+                className="w-8 h-8 object-contain"
+              />
+              <div>
+                <h1 className="text-sm font-semibold text-slate-900">山青浩然<span className="text-xs align-super">®</span></h1>
+                <p className="text-xs text-slate-500">羽毛球管理系统</p>
+              </div>
             </div>
             <SheetTrigger>
               <X className="w-5 h-5 text-slate-500" />
