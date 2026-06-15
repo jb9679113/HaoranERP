@@ -144,19 +144,8 @@ export function Login() {
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <defs>
-                  <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#1e90ff"/>
-                    <stop offset="100%" stopColor="#40a4df"/>
-                  </linearGradient>
-                </defs>
-                <polygon points="50,15 30,45 70,45" fill="#c8102e"/>
-                <path d="M35,50 Q50,42 65,50" fill="none" stroke="url(#waveGrad)" strokeWidth="3"/>
-                <path d="M40,55 Q50,48 60,55" fill="none" stroke="url(#waveGrad)" strokeWidth="2"/>
-                <text x="50" y="70" textAnchor="middle" fontSize="8" fontFamily="STKaiti, KaiTi, serif" fill="#1e90ff">山青浩然</text>
-              </svg>
+            <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl font-bold text-white">山</span>
             </div>
             <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
             <p className="text-slate-500 mt-2">
