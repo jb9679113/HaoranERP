@@ -144,12 +144,8 @@ export function Login() {
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="w-24 h-24 mx-auto mb-4">
-              <img 
-                src="/assets/logo.svg" 
-                alt="山青浩然" 
-                className="w-full h-full object-contain"
-              />
+            <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl font-bold text-white">山</span>
             </div>
             <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
             <p className="text-slate-500 mt-2">
