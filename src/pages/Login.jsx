@@ -145,11 +145,23 @@ export function Login() {
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4">
-              <img 
-                src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20calligraphy%20style%20logo%20with%20red%20mountains%20and%20blue%20waves%20with%20Chinese%20characters%20%22Shan%20Qing%20Hao%20Ran%22%20elegant%20corporate%20branding&image_size=square_hd" 
-                alt="山青浩然" 
-                className="w-full h-full object-contain"
-              />
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <defs>
+                  <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#c8102e"/>
+                    <stop offset="100%" stopColor="#8b0000"/>
+                  </linearGradient>
+                  <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#1e90ff"/>
+                    <stop offset="50%" stopColor="#40a4df"/>
+                    <stop offset="100%" stopColor="#87ceeb"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="50,10 20,50 35,50 30,65 45,55 55,55 70,65 65,50 80,50" fill="url(#mountainGrad)"/>
+                <path d="M10,75 Q25,65 40,72 T70,68 T90,75" fill="none" stroke="url(#waveGrad)" strokeWidth="3"/>
+                <path d="M15,82 Q35,70 55,80 T90,78" fill="none" stroke="url(#waveGrad)" strokeWidth="2"/>
+                <text x="50" y="92" textAnchor="middle" fontSize="10" fontFamily="STKaiti, KaiTi, serif" fill="#2c3e50">山青浩然</text>
+              </svg>
             </div>
             <h1 className="text-2xl font-bold text-slate-900">山青浩然<span className="text-xs align-super">®</span>羽毛球管理系统</h1>
             <p className="text-slate-500 mt-2">
