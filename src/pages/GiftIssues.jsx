@@ -24,6 +24,14 @@ export function GiftIssues({ role, employee }) {
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [issueTypes, setIssueTypes] = useState([]);
+  // 默认出库类型（作为数据库数据的 fallback）
+  const defaultIssueTypes = [
+    { id: 'marketing', name: '市场推广赠品', expense_account: '销售费用-业务宣传费' },
+    { id: 'entertainment', name: '业务招待赠品', expense_account: '管理费用-业务招待费' },
+    { id: 'sample', name: '样品赠送', expense_account: '销售费用-样品费' },
+  ];
+  // 合并数据库数据和默认数据（数据库数据优先）
+  const availableIssueTypes = issueTypes.length > 0 ? issueTypes : defaultIssueTypes;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingIssue, setDeletingIssue] = useState(null);
@@ -149,12 +157,12 @@ export function GiftIssues({ role, employee }) {
   };
 
   const getIssueTypeName = (typeId) => {
-    const type = issueTypes.find(t => t.id === typeId);
+    const type = availableIssueTypes.find(t => t.id === typeId);
     return type ? type.name : typeId;
   };
 
   const getExpenseAccount = (typeId) => {
-    const type = issueTypes.find(t => t.id === typeId);
+    const type = availableIssueTypes.find(t => t.id === typeId);
     return type ? type.expense_account : '';
   };
 
@@ -284,7 +292,7 @@ export function GiftIssues({ role, employee }) {
                   <SelectValue placeholder="选择出库类型" />
                 </SelectTrigger>
                 <SelectContent>
-                  {issueTypes.map(type => (
+                  {availableIssueTypes.map(type => (
                     <SelectItem key={type.id} value={type.id}>
                       {type.name} ({type.expense_account})
                     </SelectItem>
