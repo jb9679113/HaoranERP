@@ -46,15 +46,15 @@ export function FinancialReport() {
           supabase.from('purchases').select('quantity, unit_price').gte('purchase_date', startDate),
           supabase.from('transactions').select('amount, type').gte('transaction_date', startDate),
           supabase.from('bank_accounts').select('name, balance'),
-          supabase.from('gift_issues').select('total_cost, issue_type').gte('issue_date', startDate),
+          // 查询所有时间的赠品出库数据（用于累计统计）
+          supabase.from('gift_issues').select('total_cost, issue_type'),
         ])
 
         // 查询历史累计数据（从开始到当前时间段之前）
-        const [historicalSalesRes, historicalPurchasesRes, historicalTransactionsRes, historicalGiftIssuesRes] = await Promise.all([
+        const [historicalSalesRes, historicalPurchasesRes, historicalTransactionsRes] = await Promise.all([
           supabase.from('sales').select('quantity, unit_price').lt('sale_date', startDate),
           supabase.from('purchases').select('quantity, unit_price').lt('purchase_date', startDate),
           supabase.from('transactions').select('amount, type').lt('transaction_date', startDate),
-          supabase.from('gift_issues').select('total_cost').lt('issue_date', startDate),
         ])
 
         // 当期销售统计
@@ -78,7 +78,9 @@ export function FinancialReport() {
         const transactionNet = transactionIncome - transactionExpense
 
         // 当期赠品出库成本统计（费用化支出）
-        const giftIssueCost = giftIssuesRes.data?.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
+        const giftIssues = giftIssuesRes.data || []
+        const currentGiftIssues = giftIssues.filter(g => g.issue_date >= startDate)
+        const giftIssueCost = currentGiftIssues.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
 
         // 当期统一统计（赠品成本计入总支出）
         const totalIncome = totalSales + transactionIncome
@@ -94,7 +96,8 @@ export function FinancialReport() {
         const historicalTransactionExpense = historicalTransactionsRes.data?.filter(t => 
           t.type === '付款' || t.type === '支出' || t.type === '报销'
         ).reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
-        const historicalGiftIssueCost = historicalGiftIssuesRes.data?.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
+        const historicalGiftIssues = giftIssues.filter(g => g.issue_date < startDate)
+        const historicalGiftIssueCost = historicalGiftIssues.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
         
         const historicalProfit = (historicalSales + historicalTransactionIncome) - (historicalPurchases + historicalTransactionExpense + historicalGiftIssueCost)
 
