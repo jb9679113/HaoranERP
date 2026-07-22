@@ -93,21 +93,34 @@ export function GiftIssues({ role, employee }) {
     }
 
     try {
-      const result = await supabase.from('gift_issues').insert({
-        product_id: formData.product_id,
-        customer_id: formData.customer_id || null,
+      // 将 product_id 转换为字符串，确保与数据库 TEXT 类型匹配
+      const dataToInsert = {
+        product_id: String(formData.product_id),
+        customer_id: formData.customer_id ? String(formData.customer_id) : null,
         issue_type: formData.issue_type,
         quantity: parseInt(formData.quantity),
         unit_cost: parseFloat(unitCost),
         total_cost: parseFloat(totalCost),
         description: formData.description,
         issue_date: formData.issue_date,
-        created_by: employee?.id,
-      });
+        created_by: employee?.id ? String(employee.id) : null,
+      };
+
+      console.log('准备插入数据:', dataToInsert);
+
+      const result = await supabase.from('gift_issues').insert(dataToInsert);
 
       if (result.error) {
         console.error('插入失败:', result.error);
-        toast({ description: '保存失败: ' + result.error.message, variant: 'destructive' });
+        // 显示完整的错误信息，包括错误代码和详细描述
+        const errorMsg = result.error.details 
+          ? `保存失败: ${result.error.message} (${result.error.details})`
+          : `保存失败: ${result.error.message}`;
+        toast({ 
+          description: errorMsg, 
+          variant: 'destructive',
+          duration: 10000 // 延长显示时间到10秒
+        });
         return;
       }
 
@@ -124,7 +137,12 @@ export function GiftIssues({ role, employee }) {
       loadData();
     } catch (error) {
       console.error('保存异常:', error);
-      toast({ description: '保存失败: ' + error.message, variant: 'destructive' });
+      const errorMsg = error.message || JSON.stringify(error);
+      toast({ 
+        description: '保存失败: ' + errorMsg, 
+        variant: 'destructive',
+        duration: 10000
+      });
     }
   };
 
