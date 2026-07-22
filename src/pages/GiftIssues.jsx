@@ -56,15 +56,36 @@ export function GiftIssues({ role, employee }) {
     setLoading(true);
     try {
       const [issuesRes, productsRes, customersRes, typesRes] = await Promise.all([
-        supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name, expense_account)').order('issue_date', { ascending: false }),
+        // 不使用连表查询，因为 TEXT 类型无法与 BIGINT/UUID 匹配
+        supabase.from('gift_issues').select('*').order('issue_date', { ascending: false }),
         supabase.from('products').select('id, name, stock_quantity, purchase_price'),
         supabase.from('customers').select('id, name'),
         supabase.from('issue_types').select('id, name, expense_account'),
       ]);
-      setGiftIssues(issuesRes.data || []);
-      setProducts(productsRes.data || []);
-      setCustomers(customersRes.data || []);
-      setIssueTypes(typesRes.data || []);
+      
+      const issues = issuesRes.data || [];
+      const prods = productsRes.data || [];
+      const custs = customersRes.data || [];
+      const types = typesRes.data || [];
+      
+      // 手动关联数据
+      const issuesWithDetails = issues.map(issue => {
+        const product = prods.find(p => String(p.id) === issue.product_id);
+        const customer = custs.find(c => String(c.id) === issue.customer_id);
+        const issueType = types.find(t => t.id === issue.issue_type);
+        
+        return {
+          ...issue,
+          products: product ? { name: product.name } : null,
+          customers: customer ? { name: customer.name } : null,
+          issue_types: issueType ? { name: issueType.name, expense_account: issueType.expense_account } : null,
+        };
+      });
+      
+      setGiftIssues(issuesWithDetails);
+      setProducts(prods);
+      setCustomers(custs);
+      setIssueTypes(types);
     } catch (error) {
       console.error('Error loading data:', error);
       toast({ description: '加载数据失败: ' + error.message, variant: 'destructive' });
