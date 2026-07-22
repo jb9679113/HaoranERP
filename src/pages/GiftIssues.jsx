@@ -44,6 +44,7 @@ export function GiftIssues({ role, employee }) {
     issue_date: new Date().toISOString().split('T')[0],
   });
   const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState(''); // 新增：Dialog 内部显示的错误信息
 
   // 选中商品的成本信息
   const selectedProduct = products.find(p => p.id === formData.product_id);
@@ -77,18 +78,21 @@ export function GiftIssues({ role, employee }) {
   }, []);
 
   const handleSave = async () => {
+    // 清除之前的错误
+    setSaveError('');
+
     if (stockWarning) {
-      toast({ description: '库存不足，无法提交', variant: 'destructive' });
+      setSaveError('库存不足，无法提交');
       return;
     }
 
     if (!formData.product_id) {
-      toast({ description: '请选择商品', variant: 'destructive' });
+      setSaveError('请选择商品');
       return;
     }
 
     if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-      toast({ description: '请输入有效数量', variant: 'destructive' });
+      setSaveError('请输入有效数量');
       return;
     }
 
@@ -112,15 +116,11 @@ export function GiftIssues({ role, employee }) {
 
       if (result.error) {
         console.error('插入失败:', result.error);
-        // 显示完整的错误信息，包括错误代码和详细描述
+        // 在 Dialog 内部显示完整的错误信息
         const errorMsg = result.error.details 
-          ? `保存失败: ${result.error.message} (${result.error.details})`
-          : `保存失败: ${result.error.message}`;
-        toast({ 
-          description: errorMsg, 
-          variant: 'destructive',
-          duration: 10000 // 延长显示时间到10秒
-        });
+          ? `${result.error.message}\n详情: ${result.error.details}`
+          : result.error.message;
+        setSaveError('保存失败: ' + errorMsg);
         return;
       }
 
@@ -138,11 +138,7 @@ export function GiftIssues({ role, employee }) {
     } catch (error) {
       console.error('保存异常:', error);
       const errorMsg = error.message || JSON.stringify(error);
-      toast({ 
-        description: '保存失败: ' + errorMsg, 
-        variant: 'destructive',
-        duration: 10000
-      });
+      setSaveError('保存失败: ' + errorMsg);
     }
   };
 
@@ -349,6 +345,14 @@ export function GiftIssues({ role, employee }) {
               <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg">
                 <AlertTriangle className="w-4 h-4" />
                 <span className="text-sm">库存不足，当前仅剩 {selectedProduct?.stock_quantity} 件</span>
+              </div>
+            )}
+
+            {/* Dialog 内部显示的错误信息 */}
+            {saveError && (
+              <div className="flex items-start gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg border border-red-200">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span className="text-sm whitespace-pre-wrap">{saveError}</span>
               </div>
             )}
           </div>
