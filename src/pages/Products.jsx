@@ -13,9 +13,10 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Edit2, Trash2, Plus } from 'lucide-react'
+import { Edit2, Trash2, Plus, Download } from 'lucide-react'
 import { toast } from '@/components/ui/toast'
 import { canEditProducts } from '../lib/auth'
+import { exportInventoryReport } from '../lib/export'
 
 export function Products({ role }) {
   const [products, setProducts] = useState([])
@@ -143,6 +144,26 @@ export function Products({ role }) {
     }
   }
 
+  const handleExportInventory = async () => {
+    try {
+      toast({ description: '正在导出库存盘点表...', className: 'bg-blue-500' })
+      
+      // 获取采购记录
+      const { data: purchases } = await supabase.from('purchases').select('*, products(name)').order('purchase_date')
+      // 获取销售记录
+      const { data: sales } = await supabase.from('sales').select('*, products(name), customers(name)').order('sale_date')
+      // 获取赠品出库记录
+      const { data: giftIssues } = await supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name)').order('issue_date')
+      
+      await exportInventoryReport(products, purchases || [], sales || [], giftIssues || [])
+      
+      toast({ description: '库存盘点表导出成功', className: 'bg-green-500' })
+    } catch (error) {
+      console.error('导出失败:', error)
+      toast({ description: '导出失败: ' + error.message, variant: 'destructive' })
+    }
+  }
+
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -164,12 +185,18 @@ export function Products({ role }) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {canEdit && (
-          <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            新增商品
+        <div className="flex gap-2">
+          <Button onClick={handleExportInventory} className="bg-green-600 hover:bg-green-700">
+            <Download className="w-4 h-4 mr-2" />
+            导出库存盘点表
           </Button>
-        )}
+          {canEdit && (
+            <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              新增商品
+            </Button>
+          )}
+        </div>
       </div>
 
       {filteredProducts.length === 0 ? (

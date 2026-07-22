@@ -10,11 +10,12 @@ import {
   PlusCircle,
   BarChart3,
   Settings,
+  Gift,
   ChevronRight,
   Menu,
   X,
 } from 'lucide-react'
-import { canViewDashboard, canEditProducts, canViewPurchases, canViewSales, canViewCustomers, canViewEmployees, canViewLedger } from '../../lib/auth'
+import { canViewDashboard, canEditProducts, canViewPurchases, canViewSales, canViewCustomers, canViewEmployees, canViewLedger, canViewGiftIssues } from '../../lib/auth'
 import {
   Sheet,
   SheetContent,
@@ -29,6 +30,7 @@ const menuItems = [
       { id: 'products', label: '商品仓库', icon: Package, roleCheck: () => true },
       { id: 'purchases', label: '采购入库', icon: ShoppingCart, roleCheck: canViewPurchases },
       { id: 'sales', label: '销售出库', icon: DollarSign, roleCheck: canViewSales },
+      { id: 'gift-issues', label: '赠品出库', icon: Gift, roleCheck: canViewGiftIssues },
       { id: 'employees', label: '员工管理', icon: Users, roleCheck: canViewEmployees },
       { id: 'customers', label: '客户管理', icon: User, roleCheck: canViewCustomers },
     ],

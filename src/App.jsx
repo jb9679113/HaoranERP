@@ -14,12 +14,13 @@ import { NewTransaction } from './pages/ledger/NewTransaction'
 import { Reports } from './pages/ledger/Reports'
 import { LedgerSettings } from './pages/ledger/LedgerSettings'
 import { FinancialReport } from './pages/FinancialReport'
+import { GiftIssues } from './pages/GiftIssues'
 import { Button } from '@/components/ui/button'
 import {
   ToastProvider,
   ToastViewport,
 } from '@/components/ui/toast'
-import { canViewDashboard, canViewPurchases, canViewSales, canViewCustomers, canViewEmployees, canViewLedger } from './lib/auth'
+import { canViewDashboard, canViewPurchases, canViewSales, canViewCustomers, canViewEmployees, canViewLedger, canViewGiftIssues } from './lib/auth'
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, role, loading } = useAuth()
@@ -149,6 +150,17 @@ const FinancialReportRoute = () => {
   return <FinancialReport />
 }
 
+const GiftIssuesRoute = () => {
+  const { role, employee, loading } = useAuth()
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">加载中...</div>
+  }
+  if (!canViewGiftIssues(role)) {
+    return <Navigate to="/403" />
+  }
+  return <GiftIssues role={role} employee={employee} />
+}
+
 const ForbiddenPage = () => {
   const navigate = useNavigate()
   const { user, role } = useAuth()
@@ -189,6 +201,7 @@ const PageContent = ({ children }) => {
     '/products': { title: '商品仓库', subtitle: '管理商品库存信息' },
     '/purchases': { title: '采购入库', subtitle: '记录采购入库信息' },
     '/sales': { title: '销售出库', subtitle: '记录销售出库信息' },
+    '/gift-issues': { title: '赠品出库', subtitle: '管理商品赠送出库，库存自动扣减' },
     '/employees': { title: '员工管理', subtitle: '管理员工信息' },
     '/customers': { title: '客户管理', subtitle: '管理客户信息' },
     '/ledger/transactions': { title: '流水列表', subtitle: '查看所有经营流水' },
@@ -275,6 +288,14 @@ function App() {
             <ProtectedRoute allowedRoles={['admin', 'sales']}>
               <PageContent>
                 <SalesRoute />
+              </PageContent>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/gift-issues" element={
+            <ProtectedRoute allowedRoles={['admin', 'warehouse', 'sales']}>
+              <PageContent>
+                <GiftIssuesRoute />
               </PageContent>
             </ProtectedRoute>
           } />

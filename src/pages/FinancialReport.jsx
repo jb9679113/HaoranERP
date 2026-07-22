@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency, formatDate } from '../lib/format'
-import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText, Building2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText, Building2, Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { exportFinancialReport } from '../lib/export'
 
 export function FinancialReport() {
   const [report, setReport] = useState({
@@ -11,6 +13,7 @@ export function FinancialReport() {
     transactionIncome: 0,
     transactionExpense: 0,
     transactionNet: 0,
+    giftIssueCost: 0,
     totalIncome: 0,
     totalExpense: 0,
     overallProfit: 0,
@@ -38,18 +41,20 @@ export function FinancialReport() {
         }
 
         // 查询当期数据
-        const [salesRes, purchasesRes, transactionsRes, bankRes] = await Promise.all([
+        const [salesRes, purchasesRes, transactionsRes, bankRes, giftIssuesRes] = await Promise.all([
           supabase.from('sales').select('quantity, unit_price').gte('sale_date', startDate),
           supabase.from('purchases').select('quantity, unit_price').gte('purchase_date', startDate),
           supabase.from('transactions').select('amount, type').gte('transaction_date', startDate),
           supabase.from('bank_accounts').select('name, balance'),
+          supabase.from('gift_issues').select('total_cost, issue_type').gte('issue_date', startDate),
         ])
 
         // 查询历史累计数据（从开始到当前时间段之前）
-        const [historicalSalesRes, historicalPurchasesRes, historicalTransactionsRes] = await Promise.all([
+        const [historicalSalesRes, historicalPurchasesRes, historicalTransactionsRes, historicalGiftIssuesRes] = await Promise.all([
           supabase.from('sales').select('quantity, unit_price').lt('sale_date', startDate),
           supabase.from('purchases').select('quantity, unit_price').lt('purchase_date', startDate),
           supabase.from('transactions').select('amount, type').lt('transaction_date', startDate),
+          supabase.from('gift_issues').select('total_cost').lt('issue_date', startDate),
         ])
 
         // 当期销售统计
@@ -72,9 +77,12 @@ export function FinancialReport() {
 
         const transactionNet = transactionIncome - transactionExpense
 
-        // 当期统一统计
+        // 当期赠品出库成本统计（费用化支出）
+        const giftIssueCost = giftIssuesRes.data?.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
+
+        // 当期统一统计（赠品成本计入总支出）
         const totalIncome = totalSales + transactionIncome
-        const totalExpense = totalPurchases + transactionExpense
+        const totalExpense = totalPurchases + transactionExpense + giftIssueCost
         const overallProfit = totalIncome - totalExpense
 
         // 历史累计利润计算
@@ -86,8 +94,9 @@ export function FinancialReport() {
         const historicalTransactionExpense = historicalTransactionsRes.data?.filter(t => 
           t.type === '付款' || t.type === '支出' || t.type === '报销'
         ).reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
+        const historicalGiftIssueCost = historicalGiftIssuesRes.data?.reduce((sum, g) => sum + parseFloat(g.total_cost), 0) || 0
         
-        const historicalProfit = (historicalSales + historicalTransactionIncome) - (historicalPurchases + historicalTransactionExpense)
+        const historicalProfit = (historicalSales + historicalTransactionIncome) - (historicalPurchases + historicalTransactionExpense + historicalGiftIssueCost)
 
         // 获取青岛银行账户余额（初始资金）
         const bankAccounts = bankRes.data || []
@@ -107,6 +116,7 @@ export function FinancialReport() {
           transactionIncome,
           transactionExpense,
           transactionNet,
+          giftIssueCost,
           totalIncome,
           totalExpense,
           overallProfit,
@@ -123,6 +133,42 @@ export function FinancialReport() {
 
     fetchFinancialData()
   }, [period])
+
+  // 导出财务报表
+  const handleExportFinancial = async () => {
+    try {
+      const toast = await import('@/components/ui/toast').then(m => m.toast)
+      toast({ description: '正在导出财务报表...', className: 'bg-blue-500' })
+      
+      let startDate = ''
+      const today = new Date().toISOString().split('T')[0]
+      
+      if (period === 'month') {
+        startDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+      } else if (period === 'quarter') {
+        const quarter = Math.floor(new Date().getMonth() / 3)
+        startDate = new Date(new Date().getFullYear(), quarter * 3, 1).toISOString().split('T')[0]
+      } else {
+        startDate = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
+      }
+
+      // 获取明细数据
+      const [salesRes, purchasesRes, transactionsRes, giftIssuesRes] = await Promise.all([
+        supabase.from('sales').select('*, products(name), customers(name)').gte('sale_date', startDate),
+        supabase.from('purchases').select('*, products(name)').gte('purchase_date', startDate),
+        supabase.from('transactions').select('*, expense_categories(name)').gte('transaction_date', startDate),
+        supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name, expense_account)').gte('issue_date', startDate),
+      ])
+      
+      await exportFinancialReport(report, salesRes.data || [], purchasesRes.data || [], transactionsRes.data || [], giftIssuesRes.data || [], period)
+      
+      toast({ description: '财务报表导出成功', className: 'bg-green-500' })
+    } catch (error) {
+      console.error('导出失败:', error)
+      const toast = await import('@/components/ui/toast').then(m => m.toast)
+      toast({ description: '导出失败: ' + error.message, variant: 'destructive' })
+    }
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center py-12">加载中...</div>
@@ -190,6 +236,10 @@ export function FinancialReport() {
               {periodLabels[p]}
             </button>
           ))}
+          <Button onClick={handleExportFinancial} className="bg-green-600 hover:bg-green-700">
+            <Download className="w-4 h-4 mr-2" />
+            导出Excel
+          </Button>
         </div>
       </div>
 
@@ -286,6 +336,19 @@ export function FinancialReport() {
         </div>
       </div>
 
+      {/* 赠品出库成本 */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-purple-500" />
+          赠品出库成本
+        </h3>
+        <div className="bg-purple-50 rounded-lg p-4">
+          <p className="text-sm text-slate-500 mb-1">赠品出库费用化金额（计入销售/管理费用）</p>
+          <p className="text-xl font-bold text-purple-600">{formatCurrency(report.giftIssueCost)}</p>
+          <p className="text-xs text-slate-400 mt-1">包含：市场推广赠品、业务招待赠品、样品赠送</p>
+        </div>
+      </div>
+
       {/* 经营流水统计 */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
         <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -349,8 +412,8 @@ export function FinancialReport() {
           </div>
           <div className="bg-white rounded-lg p-4">
             <p className="font-medium text-slate-700 mb-2">总支出</p>
-            <p className="text-slate-500">采购总额 + 经营流水支出（付款、支出、报销）</p>
-            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalPurchases)} + {formatCurrency(report.transactionExpense)} = {formatCurrency(report.totalExpense)}</p>
+            <p className="text-slate-500">采购总额 + 经营流水支出（付款、支出、报销）+ 赠品出库成本</p>
+            <p className="text-slate-700 mt-1 font-mono">= {formatCurrency(report.totalPurchases)} + {formatCurrency(report.transactionExpense)} + {formatCurrency(report.giftIssueCost)} = {formatCurrency(report.totalExpense)}</p>
           </div>
           <div className="bg-white rounded-lg p-4">
             <p className="font-medium text-slate-700 mb-2">整体利润</p>
