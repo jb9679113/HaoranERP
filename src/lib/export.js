@@ -122,34 +122,35 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
     // Sheet 1: 核心指标（专业财务报表格式）
     const summarySheet = [
       // 表头信息
-      { '': '', '山青浩然羽毛球管理系统': '', '': '' },
-      { '': '', '财务报表': '', '' },
-      { '': '', `统计周期：${periodLabels[period] || ''}`: '', '' },
-      { '': '', `生成时间：${new Date().toLocaleString('zh-CN')}`: '', '' },
-      { '': '', '', '' },
+      { '_col1': '', '_col2': '山青浩然羽毛球管理系统', '_col3': '', '_col4': '' },
+      { '_col1': '', '_col2': '财务报表', '_col3': '', '_col4': '' },
+      { '_col1': '', '_col2': `统计周期：${periodLabels[period] || ''}`, '_col3': '', '_col4': '' },
+      { '_col1': '', '_col2': `生成时间：${new Date().toLocaleString('zh-CN')}`, '_col3': '', '_col4': '' },
+      { '_col1': '', '_col2': '', '_col3': '', '_col4': '' },
       
       // 资产部分
-      { '类别': '资产', '项目': '银行账户余额', '金额': report.accountBalance || 0, '备注': '青岛银行账户' },
-      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      { '_col1': '类别', '_col2': '项目', '_col3': '金额', '_col4': '备注' },
+      { '_col1': '资产', '_col2': '银行账户余额', '_col3': report.accountBalance || 0, '_col4': '青岛银行账户' },
+      { '_col1': '', '_col2': '', '_col3': '', '_col4': '' },
       
       // 收入部分
-      { '类别': '收入', '项目': '销售总额', '金额': report.totalSales || 0, '备注': '' },
-      { '类别': '', '项目': '经营流水收入', '金额': report.transactionIncome || 0, '备注': '入账、收入' },
-      { '类别': '', '项目': '总收入', '金额': report.totalIncome || 0, '备注': '销售总额 + 经营流水收入' },
-      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      { '_col1': '收入', '_col2': '销售总额', '_col3': report.totalSales || 0, '_col4': '' },
+      { '_col1': '', '_col2': '经营流水收入', '_col3': report.transactionIncome || 0, '_col4': '入账、收入' },
+      { '_col1': '', '_col2': '总收入', '_col3': report.totalIncome || 0, '_col4': '销售总额 + 经营流水收入' },
+      { '_col1': '', '_col2': '', '_col3': '', '_col4': '' },
       
       // 支出部分
-      { '类别': '支出', '项目': '采购总额', '金额': report.totalPurchases || 0, '备注': '' },
-      { '类别': '', '项目': '经营流水支出', '金额': report.transactionExpense || 0, '备注': '付款、支出、报销' },
-      { '类别': '', '项目': '赠品出库成本', '金额': report.giftIssueCost || 0, '备注': '市场推广/业务招待/样品赠送' },
-      { '类别': '', '项目': '总支出', '金额': report.totalExpense || 0, '备注': '采购总额 + 经营流水支出 + 赠品出库成本' },
-      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      { '_col1': '支出', '_col2': '采购总额', '_col3': report.totalPurchases || 0, '_col4': '' },
+      { '_col1': '', '_col2': '经营流水支出', '_col3': report.transactionExpense || 0, '_col4': '付款、支出、报销' },
+      { '_col1': '', '_col2': '赠品出库成本', '_col3': report.giftIssueCost || 0, '_col4': '市场推广/业务招待/样品赠送' },
+      { '_col1': '', '_col2': '总支出', '_col3': report.totalExpense || 0, '_col4': '采购总额 + 经营流水支出 + 赠品出库成本' },
+      { '_col1': '', '_col2': '', '_col3': '', '_col4': '' },
       
       // 利润部分
-      { '类别': '利润', '项目': '整体利润', '金额': report.overallProfit || 0, '备注': '总收入 - 总支出' },
-      { '类别': '', '项目': '初始资金', '金额': report.bankBalance || 0, '备注': '5人 × 10,000 = 50,000' },
-      { '类别': '', '项目': '上期余额', '金额': report.previousBalance || 0, '备注': '初始资金 + 历史累计' },
-      { '类别': '', '项目': '当前账户余额', '金额': report.accountBalance || 0, '备注': '上期余额 + 本期利润' },
+      { '_col1': '利润', '_col2': '整体利润', '_col3': report.overallProfit || 0, '_col4': '总收入 - 总支出' },
+      { '_col1': '', '_col2': '初始资金', '_col3': report.bankBalance || 0, '_col4': '5人 × 10,000 = 50,000' },
+      { '_col1': '', '_col2': '上期余额', '_col3': report.previousBalance || 0, '_col4': '初始资金 + 历史累计' },
+      { '_col1': '', '_col2': '当前账户余额', '_col3': report.accountBalance || 0, '_col4': '上期余额 + 本期利润' },
     ];
 
     // Sheet 2: 收支对比摘要
