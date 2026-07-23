@@ -56,6 +56,7 @@ export const exportInventoryReport = async (products, purchases, sales, giftIssu
         '出库数量': s.quantity || 0,
         '出库单价': s.unit_price || 0,
         '出库金额': (s.quantity || 0) * (s.unit_price || 0),
+        '销售员': s.employees?.name || '',
         '备注': s.products?.name || '',
       });
     });

@@ -151,7 +151,7 @@ export function Products({ role }) {
       // 获取采购记录
       const { data: purchases } = await supabase.from('purchases').select('*, products(name)').order('purchase_date')
       // 获取销售记录
-      const { data: sales } = await supabase.from('sales').select('*, products(name), customers(name)').order('sale_date')
+      const { data: sales } = await supabase.from('sales').select('*, products(name), customers(name), employees(name)').order('sale_date')
       // 获取赠品出库记录
       const { data: giftIssues } = await supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name)').order('issue_date')
       
