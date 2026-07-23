@@ -144,7 +144,7 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
       '数量': s.quantity || 0,
       '单价': s.unit_price || 0,
       '金额': (s.quantity || 0) * (s.unit_price || 0),
-      '销售员': '',
+      '销售员': s.employees?.name || '',
     }));
 
     // Sheet 3: 采购明细

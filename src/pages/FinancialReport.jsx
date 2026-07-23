@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency, formatDate } from '../lib/format'
-import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText, Building2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, PieChart, DollarSign, ShoppingCart, CreditCard, FileText, Building2, Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { exportFinancialReport } from '../lib/export'
 
 export function FinancialReport() {
   const [report, setReport] = useState({
@@ -138,6 +140,39 @@ export function FinancialReport() {
     fetchFinancialData()
   }, [period])
 
+  const handleExport = async () => {
+    try {
+      let startDate = ''
+      const today = new Date().toISOString().split('T')[0]
+      
+      if (period === 'month') {
+        startDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+      } else if (period === 'quarter') {
+        const quarter = Math.floor(new Date().getMonth() / 3)
+        startDate = new Date(new Date().getFullYear(), quarter * 3, 1).toISOString().split('T')[0]
+      } else {
+        startDate = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
+      }
+
+      // 获取明细数据
+      const [salesRes, purchasesRes, transactionsRes, giftIssuesRes] = await Promise.all([
+        supabase.from('sales').select('*, products(name), customers(name), employees(name)').gte('sale_date', startDate),
+        supabase.from('purchases').select('*, products(name)').gte('purchase_date', startDate),
+        supabase.from('transactions').select('*, expense_categories(name)').gte('transaction_date', startDate),
+        supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name, expense_account)').gte('issue_date', startDate),
+      ])
+      
+      await exportFinancialReport(report, salesRes.data || [], purchasesRes.data || [], transactionsRes.data || [], giftIssuesRes.data || [], period)
+      
+      const toast = await import('@/components/ui/toast').then(m => m.toast)
+      toast({ description: '财务报表导出成功', className: 'bg-green-500' })
+    } catch (error) {
+      console.error('导出失败:', error)
+      const toast = await import('@/components/ui/toast').then(m => m.toast)
+      toast({ description: '导出失败: ' + error.message, variant: 'destructive' })
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-12">加载中...</div>
   }
@@ -204,6 +239,10 @@ export function FinancialReport() {
               {periodLabels[p]}
             </button>
           ))}
+          <Button onClick={handleExport} className="bg-green-600 hover:bg-green-700">
+            <Download className="w-4 h-4 mr-2" />
+            导出报表
+          </Button>
         </div>
       </div>
 
