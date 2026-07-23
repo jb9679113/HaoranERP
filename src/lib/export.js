@@ -119,23 +119,68 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
       year: '本年度'
     };
     
-    // Sheet 1: 核心指标
+    // Sheet 1: 核心指标（专业财务报表格式）
     const summarySheet = [
-      { '指标': '统计周期', '金额': periodLabels[period] || '', '说明': '' },
-      { '指标': '总收入', '金额': report.totalIncome || 0, '说明': '销售总额 + 经营流水收入' },
-      { '指标': '总支出', '金额': report.totalExpense || 0, '说明': '采购总额 + 经营流水支出 + 赠品出库成本' },
-      { '指标': '整体利润', '金额': report.overallProfit || 0, '说明': '总收入 - 总支出' },
-      { '指标': '上期余额', '金额': report.previousBalance || 0, '说明': '初始资金 + 历史累计利润' },
-      { '指标': '账户余额', '金额': report.accountBalance || 0, '说明': '上期余额 + 本期利润' },
-      { '指标': '销售总额', '金额': report.totalSales || 0, '说明': '' },
-      { '指标': '采购总额', '金额': report.totalPurchases || 0, '说明': '' },
-      { '指标': '经营流水收入', '金额': report.transactionIncome || 0, '说明': '' },
-      { '指标': '经营流水支出', '金额': report.transactionExpense || 0, '说明': '' },
-      { '指标': '赠品出库成本', '金额': report.giftIssueCost || 0, '说明': '' },
-      { '指标': '生成时间', '金额': new Date().toLocaleString('zh-CN'), '说明': '' },
+      // 表头信息
+      { '': '', '山青浩然羽毛球管理系统': '', '': '' },
+      { '': '', '财务报表': '', '' },
+      { '': '', `统计周期：${periodLabels[period] || ''}`: '', '' },
+      { '': '', `生成时间：${new Date().toLocaleString('zh-CN')}`: '', '' },
+      { '': '', '', '' },
+      
+      // 资产部分
+      { '类别': '资产', '项目': '银行账户余额', '金额': report.accountBalance || 0, '备注': '青岛银行账户' },
+      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      
+      // 收入部分
+      { '类别': '收入', '项目': '销售总额', '金额': report.totalSales || 0, '备注': '' },
+      { '类别': '', '项目': '经营流水收入', '金额': report.transactionIncome || 0, '备注': '入账、收入' },
+      { '类别': '', '项目': '总收入', '金额': report.totalIncome || 0, '备注': '销售总额 + 经营流水收入' },
+      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      
+      // 支出部分
+      { '类别': '支出', '项目': '采购总额', '金额': report.totalPurchases || 0, '备注': '' },
+      { '类别': '', '项目': '经营流水支出', '金额': report.transactionExpense || 0, '备注': '付款、支出、报销' },
+      { '类别': '', '项目': '赠品出库成本', '金额': report.giftIssueCost || 0, '备注': '市场推广/业务招待/样品赠送' },
+      { '类别': '', '项目': '总支出', '金额': report.totalExpense || 0, '备注': '采购总额 + 经营流水支出 + 赠品出库成本' },
+      { '类别': '', '项目': '', '金额': '', '备注': '' },
+      
+      // 利润部分
+      { '类别': '利润', '项目': '整体利润', '金额': report.overallProfit || 0, '备注': '总收入 - 总支出' },
+      { '类别': '', '项目': '初始资金', '金额': report.bankBalance || 0, '备注': '5人 × 10,000 = 50,000' },
+      { '类别': '', '项目': '上期余额', '金额': report.previousBalance || 0, '备注': '初始资金 + 历史累计' },
+      { '类别': '', '项目': '当前账户余额', '金额': report.accountBalance || 0, '备注': '上期余额 + 本期利润' },
     ];
 
-    // Sheet 2: 销售明细
+    // Sheet 2: 收支对比摘要
+    const comparisonSheet = [
+      { '类别': '', '项目': periodLabels[period] || '', '金额': '', '占比': '' },
+      { '类别': '', '': '', '', '' },
+      { '类别': '收入', '项目': '销售总额', '金额': report.totalSales || 0, '占比': report.totalIncome ? ((report.totalSales || 0) / report.totalIncome * 100).toFixed(1) + '%' : '' },
+      { '类别': '收入', '项目': '经营流水收入', '金额': report.transactionIncome || 0, '占比': report.totalIncome ? ((report.transactionIncome || 0) / report.totalIncome * 100).toFixed(1) + '%' : '' },
+      { '类别': '收入', '项目': '收入合计', '金额': report.totalIncome || 0, '占比': '100%' },
+      { '类别': '', '项目': '', '金额': '', '占比': '' },
+      { '类别': '支出', '项目': '采购总额', '金额': report.totalPurchases || 0, '占比': report.totalExpense ? ((report.totalPurchases || 0) / report.totalExpense * 100).toFixed(1) + '%' : '' },
+      { '类别': '支出', '项目': '经营流水支出', '金额': report.transactionExpense || 0, '占比': report.totalExpense ? ((report.transactionExpense || 0) / report.totalExpense * 100).toFixed(1) + '%' : '' },
+      { '类别': '支出', '项目': '赠品出库成本', '金额': report.giftIssueCost || 0, '占比': report.totalExpense ? ((report.giftIssueCost || 0) / report.totalExpense * 100).toFixed(1) + '%' : '' },
+      { '类别': '支出', '项目': '支出合计', '金额': report.totalExpense || 0, '占比': '100%' },
+      { '类别': '', '项目': '', '金额': '', '占比': '' },
+      { '类别': '利润', '项目': '整体利润', '金额': report.overallProfit || 0, '占比': '' },
+      { '类别': '', '项目': '利润率', '金额': report.totalIncome ? ((report.overallProfit || 0) / report.totalIncome * 100).toFixed(1) + '%' : '', '占比': '' },
+    ];
+
+    // Sheet 3: 数据分析（数据透视表数据源）
+    const analysisSheet = [
+      { '类别': '收入', '项目': '销售总额', '金额': report.totalSales || 0, '周期': periodLabels[period] },
+      { '类别': '收入', '项目': '经营流水收入', '金额': report.transactionIncome || 0, '周期': periodLabels[period] },
+      { '类别': '支出', '项目': '采购总额', '金额': report.totalPurchases || 0, '周期': periodLabels[period] },
+      { '类别': '支出', '项目': '经营流水支出', '金额': report.transactionExpense || 0, '周期': periodLabels[period] },
+      { '类别': '支出', '项目': '赠品出库成本', '金额': report.giftIssueCost || 0, '周期': periodLabels[period] },
+      { '类别': '利润', '项目': '整体利润', '金额': report.overallProfit || 0, '周期': periodLabels[period] },
+      { '类别': '资产', '项目': '账户余额', '金额': report.accountBalance || 0, '周期': periodLabels[period] },
+    ];
+
+    // Sheet 4: 销售明细
     const salesSheet = sales.map((s, index) => ({
       '序号': index + 1,
       '日期': s.sale_date || '',
@@ -147,7 +192,7 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
       '销售员': s.employees?.name || '',
     }));
 
-    // Sheet 3: 采购明细
+    // Sheet 5: 采购明细
     const purchasesSheet = purchases.map((p, index) => ({
       '序号': index + 1,
       '日期': p.purchase_date || '',
@@ -158,7 +203,7 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
       '金额': (p.quantity || 0) * (p.unit_price || 0),
     }));
 
-    // Sheet 4: 经营流水明细
+    // Sheet 6: 经营流水明细
     const transactionsSheet = transactions.map((t, index) => ({
       '序号': index + 1,
       '日期': t.transaction_date || '',
@@ -169,7 +214,7 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
       '付款方式': '',
     }));
 
-    // Sheet 5: 赠品出库成本
+    // Sheet 7: 赠品出库成本
     const giftIssuesSheet = giftIssues.map((g, index) => ({
       '序号': index + 1,
       '日期': g.issue_date || '',
@@ -186,6 +231,8 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
     
     // 添加Sheet
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summarySheet), '核心指标');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(comparisonSheet), '收支对比');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(analysisSheet), '数据分析');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(salesSheet), '销售明细');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(purchasesSheet), '采购明细');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(transactionsSheet), '经营流水');
