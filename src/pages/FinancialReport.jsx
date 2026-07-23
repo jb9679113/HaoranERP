@@ -154,15 +154,38 @@ export function FinancialReport() {
         startDate = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
       }
 
-      // 获取明细数据
-      const [salesRes, purchasesRes, transactionsRes, giftIssuesRes] = await Promise.all([
+      // 获取明细数据（赠品出库不使用连表查询，因为TEXT类型无法匹配）
+      const [salesRes, purchasesRes, transactionsRes, giftIssuesRes, productsRes, customersRes, issueTypesRes] = await Promise.all([
         supabase.from('sales').select('*, products(name), customers(name), employees(name)').gte('sale_date', startDate),
         supabase.from('purchases').select('*, products(name)').gte('purchase_date', startDate),
         supabase.from('transactions').select('*, expense_categories(name)').gte('transaction_date', startDate),
-        supabase.from('gift_issues').select('*, products(name), customers(name), issue_types(name, expense_account)').gte('issue_date', startDate),
+        // 不使用连表查询，因为TEXT类型无法与BIGINT/UUID匹配
+        supabase.from('gift_issues').select('*').gte('issue_date', startDate),
+        supabase.from('products').select('id, name'),
+        supabase.from('customers').select('id, name'),
+        supabase.from('issue_types').select('id, name, expense_account'),
       ])
       
-      await exportFinancialReport(report, salesRes.data || [], purchasesRes.data || [], transactionsRes.data || [], giftIssuesRes.data || [], period)
+      // 手动关联赠品出库数据
+      const giftIssues = giftIssuesRes.data || []
+      const products = productsRes.data || []
+      const customers = customersRes.data || []
+      const issueTypes = issueTypesRes.data || []
+      
+      const giftIssuesWithDetails = giftIssues.map(g => {
+        const product = products.find(p => String(p.id) === g.product_id)
+        const customer = customers.find(c => String(c.id) === g.customer_id)
+        const issueType = issueTypes.find(t => t.id === g.issue_type)
+        
+        return {
+          ...g,
+          products: product ? { name: product.name } : null,
+          customers: customer ? { name: customer.name } : null,
+          issue_types: issueType ? { name: issueType.name, expense_account: issueType.expense_account } : null,
+        }
+      })
+      
+      await exportFinancialReport(report, salesRes.data || [], purchasesRes.data || [], transactionsRes.data || [], giftIssuesWithDetails, period)
       
       const toast = await import('@/components/ui/toast').then(m => m.toast)
       toast({ description: '财务报表导出成功', className: 'bg-green-500' })
