@@ -156,7 +156,7 @@ export const exportFinancialReport = async (report, sales, purchases, transactio
     // Sheet 2: 收支对比摘要
     const comparisonSheet = [
       { '类别': '', '项目': periodLabels[period] || '', '金额': '', '占比': '' },
-      { '类别': '', '': '', '', '' },
+      { '类别': '', '项目': '', '金额': '', '占比': '' },
       { '类别': '收入', '项目': '销售总额', '金额': report.totalSales || 0, '占比': report.totalIncome ? ((report.totalSales || 0) / report.totalIncome * 100).toFixed(1) + '%' : '' },
       { '类别': '收入', '项目': '经营流水收入', '金额': report.transactionIncome || 0, '占比': report.totalIncome ? ((report.transactionIncome || 0) / report.totalIncome * 100).toFixed(1) + '%' : '' },
       { '类别': '收入', '项目': '收入合计', '金额': report.totalIncome || 0, '占比': '100%' },
