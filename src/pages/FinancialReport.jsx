@@ -100,11 +100,18 @@ export function FinancialReport() {
         const qingdaoBank = bankAccounts.find(acc => acc.name === '青岛银行')
         const bankBalance = qingdaoBank ? parseFloat(qingdaoBank.balance) || 0 : 0
 
-        // 上个月的账户余额 = 初始资金 + 历史累计利润
-        const previousBalance = bankBalance + historicalProfit
+        // 现金流量计算（不含赠品成本，因为赠品不涉及资金流出）
+        // 当期现金净流量 = 销售回款 + 经营收入 - 采购付款 - 经营支出
+        const currentCashFlow = totalSales + transactionIncome - totalPurchases - transactionExpense
         
-        // 本月账户余额 = 上个月账户余额 + 本月经营利润
-        const accountBalance = previousBalance + overallProfit
+        // 历史现金净流量（从开始到当前时间段之前）
+        const historicalCashFlow = historicalSales + historicalTransactionIncome - historicalPurchases - historicalTransactionExpense
+
+        // 上个月的账户余额 = 初始资金 + 历史现金净流量
+        const previousBalance = bankBalance + historicalCashFlow
+        
+        // 本月账户余额 = 上个月账户余额 + 本月现金净流量
+        const accountBalance = previousBalance + currentCashFlow
 
         setReport({
           totalSales,
